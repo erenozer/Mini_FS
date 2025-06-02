@@ -1,9 +1,9 @@
 all: compile run
 
-compile: main.c fs.c fs.h
+compile: main.c fs.c fs.h disk.h
 	@echo "-----------------------------------------"
 	@echo "Compiling..."
-	@gcc -o fs_simulator main.c fs.c -pthread
+	@gcc -o mini_fs main.c fs.c -pthread
 	@echo "Compilation completed."
 
 run: mini_fs
