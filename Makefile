@@ -1,21 +1,21 @@
 all: compile run
 
-compile: studentID_market_sim.c market_sim.h
+compile: main.c fs.c fs.h
 	@echo "-----------------------------------------"
 	@echo "Compiling..."
-	@gcc -o market_sim studentID_market_sim.c -pthread
+	@gcc -o fs_simulator main.c fs.c -pthread
 	@echo "Compilation completed."
 
-run: market_sim
+run: mini_fs
 	@echo "-----------------------------------------"
 	@echo "Running the program..."
 	@echo "======================================================================="
-	@./market_sim
+	@./mini_fs
 	@echo "======================================================================="
 	@echo "Program completed."
 
 clean:
 	@echo "-----------------------------------------"
 	@echo "Removing compiled files..."
-	@rm -f market_sim
+	@rm -f mini_fs
 	@echo "Removed compiled files."
