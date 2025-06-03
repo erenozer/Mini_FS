@@ -17,7 +17,7 @@ Provide in main.c a sequence to:
 int main(int argc, char *argv[]) {
     if (argc == 1) {
         // Demo program for explained sequence
-        /*
+        
         mkfs("disk.img");
         printf("Disk formatted successfully.\n");
 
@@ -27,6 +27,14 @@ int main(int argc, char *argv[]) {
         create_fs("/demo/hello.txt");
         printf("File /demo/hello.txt created.\n");
 
+        DirectoryEntry entries[10];
+        int count = ls_fs("/demo", entries, 10);
+        printf("Contents of /demo:\n");
+        for (int i = 0; i < count; ++i) {
+            printf("%s\n", entries[i].name);
+        }
+
+        /*
         write_fs("/demo/hello.txt", "MiniFS says hi!");
         printf("Data written to /demo/hello.txt.\n");
 
@@ -53,11 +61,7 @@ int main(int argc, char *argv[]) {
 
         printf("Example main sequence finished.\n");
         */
-    
-        mkfs("disk.img");
-        printf("Disk formatted successfully.\n");
 
-        return 0;
     } // Else, handle command line arguments
 
     /*
@@ -152,5 +156,5 @@ int main(int argc, char *argv[]) {
 
     return 0;
     */
-    
+
 }

@@ -5,6 +5,57 @@
 #include "fs.h"
 #include "disk.h"
 
+int ls_fs(const char *path, DirectoryEntry *entries, int max_entries) {
+    if (!path || path[0] != '/') {
+        fprintf(stderr, "Error: Only absolute paths are supported.\n");
+        return -1;
+    }
+
+    FILE *fp = fopen("disk.img", "rb");
+    if (!fp) {
+        fprintf(stderr, "Error: Could not open disk image.\n");
+        return -1;
+    }
+
+    int dirInodeIndex = resolvePath(fp, path, NULL, NULL);
+    if (dirInodeIndex == -1) {
+        fprintf(stderr, "Error: Directory not found.\n");
+        fclose(fp);
+        return -1;
+    }
+
+    Inode dirInode;
+    if (readInode(fp, dirInodeIndex, &dirInode) != 0 || !dirInode.is_directory) {
+        fprintf(stderr, "Error: Path is not a directory.\n");
+        fclose(fp);
+        return -1;
+    }
+
+    int count = 0;
+    DirectoryEntry blockEntries[MAX_DIR_ENTRIES];
+
+    for (int i = 0; i < 4 && count < max_entries; i++) {
+        if (dirInode.direct_blocks[i] == -1) continue;
+
+        if (readBlock(fp, dirInode.direct_blocks[i], blockEntries) != 0) {
+            fprintf(stderr, "Error: Failed to read directory block.\n");
+            fclose(fp);
+            return -1;
+        }
+
+        // Filters out "." and ".." entries while listing entries
+        for (int j = 0; j < MAX_DIR_ENTRIES && count < max_entries; j++) {
+            if (blockEntries[j].inode_number != -1 && strcmp(blockEntries[j].name, ".") != 0 && strcmp(blockEntries[j].name, "..") != 0) {
+                entries[count++] = blockEntries[j];
+            }
+        }
+    }
+
+    fclose(fp);
+    return count;
+}
+
+
 int create_fs(const char *path) {
     if (!path || path[0] != '/') {
         fprintf(stderr, "Error: Only absolute paths are supported.\n");
@@ -43,10 +94,10 @@ int create_fs(const char *path) {
         .size = 0,
         .is_directory = 0,
         .owner_id = 150240719
-    }
+    };
 
     for (int i = 0; i < 4; ++i) {
-        dirInode.direct_blocks[i] = -1;
+        fileInode.direct_blocks[i] = -1;
     }
 
     if (writeInode(fp, newInode, &fileInode) != 0) {
@@ -135,7 +186,7 @@ int mkdir_fs(const char *path) {
     }
     // Initialize directory entries for "." and ".."
     DirectoryEntry selfAndParent[MAX_DIR_ENTRIES];
-    
+
     // Zero out all entries
     memset(selfAndParent, 0, sizeof(selfAndParent));
 
@@ -239,6 +290,17 @@ void mkfs(const char *diskfile) {
 
     fseek(fp, BLOCK_SIZE * sb.inode_start, SEEK_SET);
     fwrite(&root_inode, sizeof(Inode), 1, fp); // This is the root inode, inode 0
+
+    // Initialize root directory data block with empty entries
+    DirectoryEntry root_entries[MAX_DIR_ENTRIES];
+    for (int i = 0; i < MAX_DIR_ENTRIES; i++) {
+        root_entries[i].inode_number = -1;
+        root_entries[i].name[0] = '\0';
+    }
+    
+    // Write the empty directory entries to the root directory's data block
+    fseek(fp, root_data_block * BLOCK_SIZE, SEEK_SET);
+    fwrite(root_entries, sizeof(root_entries), 1, fp);
     
 
     fclose(fp);
@@ -330,7 +392,10 @@ int resolvePath(FILE *fp, const char *path, int *parent_inode, char *name) {
         if (!next) {
             if (parent_inode) *parent_inode = current_inode;
             if (name) strncpy(name, token, 28);
-            return -1; // entry not found yet
+            if (!next) {
+                int inodeIndex = findDirEntry(fp, current_inode, token);
+                return inodeIndex;
+            }
         }
         prev_inode = current_inode;
         current_inode = findDirEntry(fp, current_inode, token);
