@@ -33,18 +33,31 @@ int main(int argc, char *argv[]) {
         for (int i = 0; i < count; ++i) {
             printf("%s\n", entries[i].name);
         }
+        printf("\n");
 
-        /*
+        
         write_fs("/demo/hello.txt", "MiniFS says hi!");
         printf("Data written to /demo/hello.txt.\n");
 
         char buf[BLOCK_SIZE * 4] = {0};
         int bytes = read_fs("/demo/hello.txt", buf, sizeof(buf));
         if (bytes >= 0) {
+            buf[bytes] = '\0'; // Ensure null termination
             printf("Contents of /demo/hello.txt: %s\n", buf);
         } else {
-            fprintf(stderr, "Error reading file /demo/hello.txt.\n");
+            fprintf(stderr, "Error reading file.\n");
         }
+
+        write_fs("/demo/hello.txt", "ghost hi!");
+        buf[BLOCK_SIZE * 4] = 0;
+        bytes = read_fs("/demo/hello.txt", buf, sizeof(buf));
+        if (bytes >= 0) {
+            buf[bytes] = '\0'; // Ensure null termination
+            printf("Contents of /demo/hello.txt: %s\n", buf);
+        } else {
+            fprintf(stderr, "Error reading file.\n");
+        }
+        /*
 
         DirectoryEntry entries[10];
         int count = ls_fs("/demo", entries, 10);

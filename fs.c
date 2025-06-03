@@ -5,6 +5,140 @@
 #include "fs.h"
 #include "disk.h"
 
+int read_fs(const char *path, char *buf, int bufSize) {
+    if (!path || path[0] != '/' || !buf || bufSize <= 0) {
+        fprintf(stderr, "Error: Invalid arguments to read_fs.\n");
+        return -1;
+    }
+
+    FILE *fp = fopen("disk.img", "rb");
+    if (!fp) {
+        fprintf(stderr, "Error: Could not open disk image.\n");
+        return -1;
+    }
+
+    int inodeIndex = resolvePath(fp, path, NULL, NULL);
+    if (inodeIndex == -1) {
+        fprintf(stderr, "Error: File not found.\n");
+        fclose(fp);
+        return -1;
+    }
+
+    Inode inode;
+    if (readInode(fp, inodeIndex, &inode) != 0 || inode.is_directory) {
+        fprintf(stderr, "Error: Path is not a file.\n");
+        fclose(fp);
+        return -1;
+    }
+
+    int toRead = (inode.size < bufSize) ? inode.size : bufSize;
+    int readBytes = 0;
+
+    for (int i = 0; i < 4 && readBytes < toRead; i++) {
+        if (inode.direct_blocks[i] == -1) continue;
+
+        char block[BLOCK_SIZE] = {0};
+        if (readBlock(fp, inode.direct_blocks[i], block) != 0) {
+            fprintf(stderr, "Error: Failed to read data block.\n");
+            fclose(fp);
+            return -1;
+        }
+
+        int copyLen = (toRead - readBytes > BLOCK_SIZE) ? BLOCK_SIZE : (toRead - readBytes);
+        memcpy(buf + readBytes, block, copyLen);
+        readBytes += copyLen;
+    }
+
+    fclose(fp);
+    return readBytes;
+}
+
+
+int write_fs(const char *path, const char *data) {
+    if (!path || path[0] != '/') {
+        fprintf(stderr, "Error: Only absolute paths are supported.\n");
+        return -1;
+    }
+
+    int dataLen = strlen(data);
+    if (dataLen == 0) return 0; // nothing to write
+
+    if (dataLen > BLOCK_SIZE * 4) {
+        fprintf(stderr, "Error: File too large (max 4KB).\n");
+        return -1;
+    }
+
+    FILE *fp = fopen("disk.img", "rb+");
+    if (!fp) {
+        fprintf(stderr, "Error: Could not open disk image.\n");
+        return -1;
+    }
+
+    int fileInodeIndex = resolvePath(fp, path, NULL, NULL);
+    if (fileInodeIndex == -1) {
+        fprintf(stderr, "Error: File does not exist.\n");
+        fclose(fp);
+        return -1;
+    }
+
+    Inode fileInode;
+    if (readInode(fp, fileInodeIndex, &fileInode) != 0 || fileInode.is_directory) {
+        fprintf(stderr, "Error: Target is not a file.\n");
+        fclose(fp);
+        return -1;
+    }
+
+    // Free any previously allocated data blocks
+    for (int i = 0; i < 4; ++i) {
+        if (fileInode.direct_blocks[i] != -1) {
+            freeDataBlock(fp, fileInode.direct_blocks[i]);
+            fileInode.direct_blocks[i] = -1;
+        }
+    }
+
+    int remaining = dataLen;
+    const char *ptr = data;
+    int blocksUsed = 0;
+
+    while (remaining > 0 && blocksUsed < 4) {
+        int blk = allocDataBlock(fp);
+        if (blk == -1) {
+            fprintf(stderr, "Error: No space to allocate data blocks.\n");
+            fclose(fp);
+            return -1;
+        }
+
+        int toWrite = remaining > BLOCK_SIZE ? BLOCK_SIZE : remaining;
+        
+        // Create a temporary block buffer and copy only the data we need
+        char block[BLOCK_SIZE] = {0};
+        memcpy(block, ptr, toWrite);
+        
+        if (writeBlock(fp, blk, block) != 0) {
+            fprintf(stderr, "Error: Failed to write to block.\n");
+            fclose(fp);
+            return -1;
+        }
+
+        fileInode.direct_blocks[blocksUsed] = blk;
+        ptr += toWrite;
+        remaining -= toWrite;
+        blocksUsed++;
+    }
+
+    fileInode.size = dataLen;
+
+    if (writeInode(fp, fileInodeIndex, &fileInode) != 0) {
+        fprintf(stderr, "Error: Failed to update inode.\n");
+        fclose(fp);
+        return -1;
+    }
+
+    fclose(fp);
+    return dataLen;
+}
+
+
 int ls_fs(const char *path, DirectoryEntry *entries, int max_entries) {
     if (!path || path[0] != '/') {
         fprintf(stderr, "Error: Only absolute paths are supported.\n");
