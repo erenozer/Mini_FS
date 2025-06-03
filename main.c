@@ -17,6 +17,7 @@ Provide in main.c a sequence to:
 int main(int argc, char *argv[]) {
     if (argc == 1) {
         // Demo program for explained sequence
+        /*
         mkfs("disk.img");
         printf("Disk formatted successfully.\n");
 
@@ -50,10 +51,16 @@ int main(int argc, char *argv[]) {
         rmdir_fs("/demo");
         printf("Directory /demo removed.\n");
 
-        printf("Functional demonstration completed.\n");
-        return 0;
-    }
+        printf("Example main sequence finished.\n");
+        */
+    
+        mkfs("disk.img");
+        printf("Disk formatted successfully.\n");
 
+        return 0;
+    } // Else, handle command line arguments
+
+    /*
     const char *cmd = argv[1];
 
     if (strcmp(cmd, "mkfs") == 0) {
@@ -135,6 +142,7 @@ int main(int argc, char *argv[]) {
             fprintf(stderr, "Usage: %s ls_fs <path>\n", argv[0]);
             return 1;
         }
+
     } else {
         fprintf(stderr, "Error: Unknown command '%s'.\n", cmd);
         fprintf(stderr, "Usage: %s <command> [args...]\n", argv[0]);
@@ -142,5 +150,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    return 0; // Should not be reached in CLI mode if commands are handled
+    return 0;
+    */
+    
 }
