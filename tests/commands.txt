@@ -1,0 +1,11 @@
+mkfs
+mkdir_fs /kovan
+create_fs /kovan/hey.txt
+write_fs /kovan/hey.txt "Operating Systems - MiniFS Project"
+read_fs /kovan/hey.txt
+ls_fs /kovan
+delete_fs /kovan/hey.txt
+rmdir_fs /kovan
+create_fs /newfile.txt
+write_fs /newfile.txt "Reusing freed blocks/inodes."
+read_fs /newfile.txt

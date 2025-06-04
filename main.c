@@ -6,8 +6,7 @@
 
 int main(int argc, char *argv[]) {
     if (argc == 1) {
-        // Demo program for filesystem operations to: 
-        /* 
+        /* Example sequence:
         • Create a directory.
         • Create/write a file.
         • Read the file.
@@ -45,10 +44,6 @@ int main(int argc, char *argv[]) {
                 printf("%s\n", entries[i].name);
             }
         }
-        // Try to remove directory without deleting files
-        if (rmdir_fs("/kovan") == 0) {
-            printf("Directory /kovan removed successfully.\n");
-        }
         
         // Delete the contents of /kovan
         if (delete_fs("/kovan/hey.txt") == 0) {
@@ -74,6 +69,7 @@ int main(int argc, char *argv[]) {
         printf("Example main sequence finished.\n");
 
     } else {
+        // Interface for MiniFS that handles from terminal directly
         const char *cmd = argv[1];
 
         if (strcmp(cmd, "mkfs") == 0 && argc == 2) {
@@ -124,7 +120,7 @@ int main(int argc, char *argv[]) {
                 return 0;
             } else return 1;
         } else {
-            fprintf(stderr, "Error: Unknown or malformed command.\n");
+            fprintf(stderr, "Error: Unknown command or syntax usage.\n");
             return 1;
         }
     }
