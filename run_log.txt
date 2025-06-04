@@ -1,0 +1,38 @@
+=== Mini Filesystem Demo Run Log ===
+Date: Wed Jun  4 10:26:35 UTC 2025
+
+=== Mini Filesystem Demo ===
+
+1. Disk formatted successfully.
+
+2. Directory /demo created.
+   Contents of /:
+   - demo/
+
+3. Files /demo/hello.txt and /demo/test.txt created.
+4. Data written to both files.
+
+5. Contents of /demo/hello.txt: Hello from MiniFS!
+   Contents of /demo/test.txt: This is a test file with some data.
+
+6. Contents of /demo:
+   - hello.txt
+   - test.txt
+
+7. File /demo/hello.txt deleted.
+   Contents of /demo after deletion:
+   - test.txt
+
+8. Demonstrating bitmap/inode reuse:
+   New /demo/hello.txt content: Reused inode and data block!
+   Contents of /demo after recreating file:
+   - hello.txt
+   - test.txt
+
+9. Cleaning up:
+   All files in /demo deleted.
+   Contents of /demo (should be empty): empty
+   Directory /demo removed.
+   Final contents of / (should be empty): empty
+
+=== Filesystem demo completed successfully! ===

@@ -5,6 +5,132 @@
 #include "fs.h"
 #include "disk.h"
 
+int rmdir_fs(const char *path) {
+    if(!path || path[0] != '/') {
+        fprintf(stderr, "Error: Only absolute paths are supported.\n");
+        return -1;
+    }
+    // Check if path is valid and not root
+    if (!path || strcmp(path, "/") == 0) {
+        fprintf(stderr, "Error: Cannot remove root.\n");
+        return -1;
+    }
+
+    FILE *fp = fopen("disk.img", "rb+");
+    if (!fp) {
+        fprintf(stderr, "Error: Could not open disk image.\n");
+        return -1;
+    }
+
+    int parentInode = -1;
+    char name[28];
+    int dirInodeIndex = resolvePath(fp, path, &parentInode, name);
+    if (dirInodeIndex == -1) {
+        fprintf(stderr, "Error: Directory not found.\n");
+        fclose(fp);
+        return -1;
+    }
+
+    Inode dirInode;
+    if (readInode(fp, dirInodeIndex, &dirInode) != 0 || !dirInode.is_directory) {
+        fprintf(stderr, "Error: Path is not a directory.\n");
+        fclose(fp);
+        return -1;
+    }
+
+    // Check if directory is empty (ignore "." and ".." in pathnames)
+    DirectoryEntry entries[MAX_DIR_ENTRIES];
+    for (int i = 0; i < 4; i++) {
+        if (dirInode.direct_blocks[i] == -1) continue;
+        if (readBlock(fp, dirInode.direct_blocks[i], entries) != 0) {
+            fprintf(stderr, "Error: Failed to read directory block.\n");
+            fclose(fp);
+            return -1;
+        }
+        for (int j = 0; j < MAX_DIR_ENTRIES; j++) {
+            if (entries[j].inode_number != -1 &&
+                strcmp(entries[j].name, ".") != 0 &&
+                strcmp(entries[j].name, "..") != 0) {
+                fprintf(stderr, "Error: Directory is not empty.\n");
+                fclose(fp);
+                return -1;
+            }
+        }
+    }
+
+    // Free data blocks
+    for (int i = 0; i < 4; i++) {
+        if (dirInode.direct_blocks[i] != -1) {
+            freeDataBlock(fp, dirInode.direct_blocks[i]);
+        }
+    }
+
+    // Free inode
+    freeInode(fp, dirInodeIndex);
+
+    // Remove from parent
+    if (removeDirEntry(fp, parentInode, name) != 0) {
+        fprintf(stderr, "Error: Failed to remove directory entry from parent.\n");
+        fclose(fp);
+        return -1;
+    }
+
+    fclose(fp);
+    return 0;
+}
+
+
+int delete_fs(const char *path) {
+    if (!path || path[0] != '/') {
+        fprintf(stderr, "Error: Only absolute paths are supported.\n");
+        return -1;
+    }
+
+    FILE *fp = fopen("disk.img", "rb+");
+    if (!fp) {
+        fprintf(stderr, "Error: Could not open disk image.\n");
+        return -1;
+    }
+
+    int parentInode = -1;
+    char name[28];
+    int inodeIndex = resolvePath(fp, path, &parentInode, name);
+    if (inodeIndex == -1) {
+        fprintf(stderr, "Error: File not found.\n");
+        fclose(fp);
+        return -1;
+    }
+
+    Inode fileInode;
+    if (readInode(fp, inodeIndex, &fileInode) != 0 || fileInode.is_directory) {
+        fprintf(stderr, "Error: Path is not a file.\n");
+        fclose(fp);
+        return -1;
+    }
+
+    // Free any data blocks
+    for (int i = 0; i < 4; ++i) {
+        if (fileInode.direct_blocks[i] != -1) {
+            freeDataBlock(fp, fileInode.direct_blocks[i]);
+            fileInode.direct_blocks[i] = -1;
+        }
+    }
+
+    // Free the inode
+    freeInode(fp, inodeIndex);
+
+    // Remove directory entry from parent
+    if (removeDirEntry(fp, parentInode, name) != 0) {
+        fprintf(stderr, "Error: Failed to remove directory entry.\n");
+        fclose(fp);
+        return -1;
+    }
+
+    fclose(fp);
+    return 0;
+}
+
+
 int read_fs(const char *path, char *buf, int bufSize) {
     if (!path || path[0] != '/' || !buf || bufSize <= 0) {
         fprintf(stderr, "Error: Invalid arguments to read_fs.\n");
