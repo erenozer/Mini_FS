@@ -33,6 +33,7 @@ typedef struct {
     char name[28]; // File or directory name (27 chars + null terminator)
 } DirectoryEntry;
 
+// Filesystem operations
 void mkfs(const char *diskfile);
 int mkdir_fs(const char *path);
 int create_fs(const char *path);
@@ -42,7 +43,7 @@ int delete_fs(const char *path);
 int rmdir_fs(const char *path); 
 int ls_fs(const char *path, DirectoryEntry *entries , int max_entries);
 
-// Helper functions
+// Helper functions for filesystem operations
 int readBlock(FILE *fp, int block_index, void *buf);
 int writeBlock(FILE *fp, int block_index, const void *buf);
 int allocDataBlock(FILE *fp);

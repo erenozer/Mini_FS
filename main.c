@@ -18,14 +18,17 @@ int main(int argc, char *argv[]) {
         mkfs("disk.img");
         printf("Disk formatted successfully.\n");
 
+        // Create a directory /kovan
         if (mkdir_fs("/kovan") == 0) {
             printf("Directory /kovan created successfully.\n");
         }
 
+        // Create a file /kovan/hey.txt
         if (create_fs("/kovan/hey.txt") == 0) {
             printf("File /kovan/hey.txt created successfully.\n");
         }
 
+        // Write data to the file /kovan/hey.txt
         if (write_fs("/kovan/hey.txt", "Operating Systems - MiniFS Project") >= 0) {
             printf("Data written to /kovan/hey.txt successfully.\n");
         }
@@ -36,6 +39,7 @@ int main(int argc, char *argv[]) {
             printf("Contents of /kovan/hey.txt:\n\"%s\"\n", buf);
         }
 
+        // List the contents of /kovan
         DirectoryEntry entries[10];
         int count = ls_fs("/kovan", entries, 10);
         if (count >= 0) {
@@ -50,10 +54,12 @@ int main(int argc, char *argv[]) {
             printf("File /kovan/hey.txt deleted successfully.\n");
         }
 
+        // Remove the directory /kovan
         if (rmdir_fs("/kovan") == 0) {
             printf("Directory /kovan removed successfully.\n");
         }
 
+        // Demonstrate bitmap/inode reuse by creating a new file after deletion
         if (create_fs("/newfile.txt") == 0) {
             if (write_fs("/newfile.txt", "Reusing freed blocks/inodes.") >= 0) {
                 printf("File /newfile.txt created successfully.\n");
@@ -69,7 +75,7 @@ int main(int argc, char *argv[]) {
         printf("Example main sequence finished.\n");
 
     } else {
-        // Interface for MiniFS that handles from terminal directly
+        // Command Line Interface for MiniFS that handles from terminal directly
         const char *cmd = argv[1];
 
         if (strcmp(cmd, "mkfs") == 0 && argc == 2) {
@@ -113,6 +119,7 @@ int main(int argc, char *argv[]) {
             DirectoryEntry entries[BLOCK_SIZE / sizeof(DirectoryEntry)] = {0};
             int max_entries = sizeof(entries) / sizeof(entries[0]);
             int count = ls_fs(argv[2], entries, max_entries);
+            // List directory contents using the return value of ls_fs
             if (count >= 0) {
                 for (int i = 0; i < count; ++i) {
                     printf("%s\n", entries[i].name);

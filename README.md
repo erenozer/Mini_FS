@@ -24,7 +24,6 @@ This will:
 After compiling, use ./mini_fs <command> [argument] to execute commands within the terminal to modify the existing disk. 
 
 # Automated Tests
-
 - Run `make check`
 - This executes commands in `tests/commands.txt`, compares the result to `tests/expected_output.txt`, as explained in the homework document.
 
