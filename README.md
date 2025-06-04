@@ -9,9 +9,9 @@ To compile the project:
 - Run "make compile", mini_fs executable will be created.
 
 # How to Run Demo Sequence in Main
-To run the sequence in main and update run_log.txt, use "make run"
+To run the sequence in main and see the logs in run_log.txt, use "make run"
 
-This will: 
+Demo main sequence will:
 - Format the disk.
 - Create a directory.
 - Create/write a file.
@@ -25,7 +25,7 @@ After compiling, use ./mini_fs <command> [argument] to execute commands within t
 
 # Automated Tests
 - Run `make check`
-- This executes commands in `tests/commands.txt`, compares the result to `tests/expected_output.txt`, as explained in the homework document.
+- This executes the commands in `tests/commands.txt`, creates an output.txt file and compares it to `tests/expected_output.txt`, as explained in the homework document.
 
 # Files Implemented
 - fs.h / fs.c - File system implementation
