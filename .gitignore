@@ -1,0 +1,102 @@
+# -------------------
+# C/C++ Compiled Objects & Libraries
+# -------------------
+*.o
+*.obj
+*.lo
+*.la
+*.al
+*.libs
+*.so
+*.so.*
+*.dylib
+*.a
+*.lib
+*.dll
+
+# -------------------
+# Executables & Output Directories
+# -------------------
+# Common build output directories
+build/
+bin/
+dist/
+out/
+lib/
+
+# Executables (if not in the folders above)
+*.exe
+*.out
+*.app
+
+# -------------------
+# Build System Files
+# -------------------
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+install_manifest.txt
+CMakeScripts/
+ctest_testfile.cmake
+Makefile
+*.cmake
+compile_commands.json
+
+# Make
+.dep/
+*.d
+
+# -------------------
+# Debugging & Core Dumps
+# -------------------
+*.dSYM/
+*.su
+*.idb
+*.pdb
+core
+core.*
+valgrind.out
+
+# -------------------
+# Docker Specifics
+# -------------------
+# Environment variable files (contains secrets!)
+.env
+.env.local
+.env.*
+
+# Docker Compose overrides (local dev settings)
+docker-compose.override.yml
+
+# Docker logs
+*.log
+
+# -------------------
+# IDE & Editor Configuration
+# -------------------
+# VS Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# CLion / IntelliJ
+.idea/
+cmake-build-*/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.ipch
+
+# Eclipse
+.project
+.cproject
+.settings/
+
+# macOS
+.DS_Store
